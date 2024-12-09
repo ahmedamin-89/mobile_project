@@ -1,5 +1,4 @@
 // lib/models/gift.dart
-
 class Gift {
   final String id;
   final String name;
@@ -25,7 +24,6 @@ class Gift {
     this.dueDate,
   });
 
-  // Copy method to create a modified copy of the Gift
   Gift copyWith({
     String? id,
     String? name,
@@ -52,8 +50,7 @@ class Gift {
     );
   }
 
-  // Convert a Gift object into a Map object for database insertion
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toFirestore() {
     return {
       'id': id,
       'name': name,
@@ -68,8 +65,7 @@ class Gift {
     };
   }
 
-  // Create a Gift object from a Map object retrieved from the database
-  factory Gift.fromMap(Map<String, dynamic> map) {
+  factory Gift.fromFirestore(Map<String, dynamic> map) {
     return Gift(
       id: map['id'],
       name: map['name'],
@@ -84,7 +80,6 @@ class Gift {
     );
   }
 
-  // Getter to format the due date
   String get formattedDueDate {
     if (dueDate == null) return '';
     return 'Due: ${dueDate!.month}/${dueDate!.day}/${dueDate!.year}';

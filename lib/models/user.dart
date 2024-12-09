@@ -1,5 +1,4 @@
 // lib/models/user.dart
-
 class User {
   final String id;
   final String name;
@@ -13,7 +12,6 @@ class User {
     required this.preferences,
   });
 
-  // Copy method to create a modified copy of the User
   User copyWith({
     String? id,
     String? name,
@@ -28,8 +26,7 @@ class User {
     );
   }
 
-  // Convert a User object into a Map object for database insertion
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toFirestore() {
     return {
       'id': id,
       'name': name,
@@ -38,8 +35,7 @@ class User {
     };
   }
 
-  // Create a User object from a Map object retrieved from the database
-  factory User.fromMap(Map<String, dynamic> map) {
+  factory User.fromFirestore(Map<String, dynamic> map) {
     return User(
       id: map['id'],
       name: map['name'],

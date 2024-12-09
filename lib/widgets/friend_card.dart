@@ -1,10 +1,10 @@
-// lib/widgets/friend_card.dart
 import 'package:flutter/material.dart';
 
 class FriendCard extends StatelessWidget {
   final String name;
   final String profileImageUrl;
   final int upcomingEvents;
+  final String phoneNumber;
   final VoidCallback onTap;
 
   const FriendCard({
@@ -12,6 +12,7 @@ class FriendCard extends StatelessWidget {
     required this.name,
     required this.profileImageUrl,
     required this.upcomingEvents,
+    required this.phoneNumber,
     required this.onTap,
   }) : super(key: key);
 
@@ -21,16 +22,19 @@ class FriendCard extends StatelessWidget {
       leading: CircleAvatar(
         backgroundImage:
             profileImageUrl.isNotEmpty ? NetworkImage(profileImageUrl) : null,
-        child: profileImageUrl.isEmpty ? Icon(Icons.person) : null,
+        child: profileImageUrl.isEmpty ? const Icon(Icons.person) : null,
       ),
       title: Text(name),
-      subtitle: Text(
-        upcomingEvents > 0
-            ? 'Upcoming Events: $upcomingEvents'
-            : 'No Upcoming Events',
-        style: TextStyle(color: Colors.grey[600]),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(upcomingEvents > 0
+              ? 'Upcoming Events: $upcomingEvents'
+              : 'No Upcoming Events'),
+          Text('Phone: $phoneNumber'),
+        ],
       ),
-      trailing: Icon(Icons.chevron_right),
+      trailing: const Icon(Icons.arrow_forward),
       onTap: onTap,
     );
   }

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_project/screens/event_details_page.dart';
 import 'package:mobile_project/screens/login_page.dart';
+import 'package:mobile_project/screens/register_page.dart';
 import 'screens/home_page.dart';
 import 'screens/event_list_page.dart';
 import 'screens/gift_list_page.dart';
@@ -21,9 +22,12 @@ class App extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xffd6eadf),
       ),
-      initialRoute: '/',
+      initialRoute: '/login',
       onGenerateRoute: (settings) {
         switch (settings.name) {
+          case '/register':
+            return MaterialPageRoute(builder: (_) => const RegisterPage());
+
           case '/login':
             return MaterialPageRoute(builder: (_) => const LoginPage());
           case '/':

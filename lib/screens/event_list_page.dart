@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/event_card.dart';
 import '../models/event.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EventListPage extends StatefulWidget {
   const EventListPage({super.key});
@@ -92,28 +93,40 @@ class _EventListPageState extends State<EventListPage> {
                   value: 'status', child: Text('Sort by Status')),
               const PopupMenuItem(value: 'date', child: Text('Sort by Date')),
             ],
-            icon: const Icon(Icons.sort),
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: events.length,
-        itemBuilder: (context, index) {
-          final event = events[index];
-          return EventCard(
-            eventName: event.name,
-            eventDate: event.date,
-            eventStatus: event.status,
-            onTap: () => navigateToGiftList(event),
-            onEdit: () => editEvent(event),
-            onDelete: () => deleteEvent(event),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('events').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No events found.'));
+          }
+          final events = snapshot.data!.docs
+              .map((doc) => Event.fromFirestore(doc))
+              .toList();
+          return ListView.builder(
+            itemCount: events.length,
+            itemBuilder: (context, index) {
+              final event = events[index];
+              return EventCard(
+                eventName: event.name,
+                eventDate: event.date,
+                eventStatus: event.status,
+                onTap: () => navigateToGiftList(event),
+                onEdit: () => editEvent(event),
+                onDelete: () => deleteEvent(event),
+              );
+            },
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: addEvent,
         child: const Icon(Icons.add),
-        tooltip: 'Add Event',
       ),
     );
   }

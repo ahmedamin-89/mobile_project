@@ -19,6 +19,8 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text,
         password: _passwordController.text,
       );
+
+      // Navigate to Home Page and replace the current route
       Navigator.pushReplacementNamed(context, '/');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -45,7 +47,10 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(
+        automaticallyImplyLeading: false, // Disable back button
+        title: const Text('Login'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -65,7 +70,9 @@ class _LoginPageState extends State<LoginPage> {
               child: const Text('Login'),
             ),
             TextButton(
-              onPressed: _register,
+              onPressed: () {
+                Navigator.pushNamed(context, '/register');
+              },
               child: const Text('Register'),
             ),
           ],

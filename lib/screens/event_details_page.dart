@@ -1,4 +1,5 @@
 // lib/screens/event_details_page.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../models/event.dart';
 
@@ -50,10 +51,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     }
   }
 
-  void saveEvent() {
+  void saveEvent() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      // Determine the status based on the date
       String status;
       final now = DateTime.now();
       if (date.isAfter(now)) {
@@ -64,10 +64,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         status = 'Current';
       }
 
-      // Create or update the event object
       Event newEvent = Event(
         id: widget.event?.id ??
-            'event_${DateTime.now().millisecondsSinceEpoch}',
+            FirebaseFirestore.instance.collection('events').doc().id,
         name: name,
         date: date,
         location: location,
@@ -76,17 +75,17 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         status: status,
       );
 
-      // Show a snackbar to confirm saving
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(newEvent.id)
+          .set(newEvent.toFirestore());
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Event "${newEvent.name}" saved')),
       );
 
-      // Navigate to the Gift List Page for this event
-      Navigator.pushReplacementNamed(
-        context,
-        '/gifts',
-        arguments: {'event': newEvent},
-      );
+      Navigator.pushReplacementNamed(context, '/gifts',
+          arguments: {'event': newEvent});
     }
   }
 
