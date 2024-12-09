@@ -60,4 +60,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'hedeyety-79aa8.firebasestorage.app',
     iosBundleId: 'com.example.mobileProject',
   );
+
 }

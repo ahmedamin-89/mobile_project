@@ -1,15 +1,23 @@
-// lib/app.dart
 import 'package:flutter/material.dart';
-import 'package:mobile_project/screens/event_details_page.dart';
-import 'package:mobile_project/screens/login_page.dart';
-import 'package:mobile_project/screens/register_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:mobile_project/screens/auth.dart';
+
 import 'screens/home_page.dart';
+import 'screens/splash_screen.dart';
+import 'models/event.dart';
+import 'screens/event_details_page.dart';
 import 'screens/event_list_page.dart';
 import 'screens/gift_list_page.dart';
 import 'screens/gift_details_page.dart';
 import 'screens/profile_page.dart';
 import 'screens/my_pledged_gifts_page.dart';
-import 'models/event.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const App());
+}
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -22,19 +30,23 @@ class App extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xffd6eadf),
       ),
-      initialRoute: '/login',
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (ctx, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SplashScreen(); // Show splash screen while loading
+          }
+
+          if (snapshot.hasData) {
+            return const HomePage(); // User is logged in, show the home page
+          }
+
+          // Show LoginPage or RegisterPage based on a condition (e.g., a toggle or user choice)
+          return const AuthScreen();
+        },
+      ),
       onGenerateRoute: (settings) {
         switch (settings.name) {
-          case '/register':
-            return MaterialPageRoute(builder: (_) => const RegisterPage());
-
-          case '/login':
-            return MaterialPageRoute(builder: (_) => const LoginPage());
-          case '/':
-            return MaterialPageRoute(builder: (_) => const HomePage());
-          case '/events':
-            return MaterialPageRoute(builder: (_) => const EventListPage());
-          // In app.dart, inside onGenerateRoute:
           case '/event-details':
             if (settings.arguments is Event) {
               final event = settings.arguments as Event;
@@ -46,7 +58,6 @@ class App extends StatelessWidget {
                 builder: (_) => const EventDetailsPage(),
               );
             }
-
           case '/gifts':
             if (settings.arguments is Event) {
               final event = settings.arguments as Event;
