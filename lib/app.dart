@@ -1,6 +1,7 @@
 // lib/app.dart
 import 'package:flutter/material.dart';
 import 'package:mobile_project/screens/event_details_page.dart';
+import 'package:mobile_project/screens/login_page.dart';
 import 'screens/home_page.dart';
 import 'screens/event_list_page.dart';
 import 'screens/gift_list_page.dart';
@@ -23,6 +24,8 @@ class App extends StatelessWidget {
       initialRoute: '/',
       onGenerateRoute: (settings) {
         switch (settings.name) {
+          case '/login':
+            return MaterialPageRoute(builder: (_) => const LoginPage());
           case '/':
             return MaterialPageRoute(builder: (_) => const HomePage());
           case '/events':

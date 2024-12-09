@@ -1,4 +1,4 @@
-// lib/models/event.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Event {
   final String id;
@@ -6,8 +6,8 @@ class Event {
   final DateTime date;
   final String location;
   final String description;
-  final String userId; // The ID of the user who created the event
-  final String status; // "Upcoming", "Current", or "Past"
+  final String userId;
+  final String status;
 
   Event({
     required this.id,
@@ -19,33 +19,11 @@ class Event {
     required this.status,
   });
 
-  // Copy method to create a modified copy of the Event
-  Event copyWith({
-    String? id,
-    String? name,
-    DateTime? date,
-    String? location,
-    String? description,
-    String? userId,
-    String? status,
-  }) {
-    return Event(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      date: date ?? this.date,
-      location: location ?? this.location,
-      description: description ?? this.description,
-      userId: userId ?? this.userId,
-      status: status ?? this.status,
-    );
-  }
-
-  // Convert an Event object into a Map object for database insertion
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toFirestore() {
     return {
       'id': id,
       'name': name,
-      'date': date.toIso8601String(),
+      'date': Timestamp.fromDate(date),
       'location': location,
       'description': description,
       'userId': userId,
@@ -53,28 +31,16 @@ class Event {
     };
   }
 
-  // Create an Event object from a Map object retrieved from the database
-  factory Event.fromMap(Map<String, dynamic> map) {
+  factory Event.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
     return Event(
-      id: map['id'],
-      name: map['name'],
-      date: DateTime.parse(map['date']),
-      location: map['location'],
-      description: map['description'],
-      userId: map['userId'],
-      status: map['status'],
+      id: data['id'],
+      name: data['name'],
+      date: (data['date'] as Timestamp).toDate(),
+      location: data['location'],
+      description: data['description'],
+      userId: data['userId'],
+      status: data['status'],
     );
-  }
-
-  // Determine the event's status based on the current date
-  String get computedStatus {
-    final now = DateTime.now();
-    if (date.isAfter(now)) {
-      return 'Upcoming';
-    } else if (date.isBefore(now)) {
-      return 'Past';
-    } else {
-      return 'Current';
-    }
   }
 }
