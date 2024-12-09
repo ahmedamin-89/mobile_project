@@ -26,19 +26,18 @@ class _HomePageState extends State<HomePage> {
     try {
       final querySnapshot =
           await FirebaseFirestore.instance.collection('friends').get();
-      final List<Friend> fetchedFriends = querySnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return Friend.fromFirestore(data);
-      }).toList();
+      final fetchedFriends = querySnapshot.docs
+          .map(
+              (doc) => Friend.fromFirestore(doc.data() as Map<String, dynamic>))
+          .toList();
 
       setState(() {
         friends = fetchedFriends;
         filteredFriends = fetchedFriends;
       });
     } catch (e) {
-      print('Error fetching friends: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load friends: $e')),
+        SnackBar(content: Text('Error loading friends: $e')),
       );
     }
   }
@@ -46,18 +45,15 @@ class _HomePageState extends State<HomePage> {
   void updateSearch(String query) {
     setState(() {
       searchQuery = query;
-      filteredFriends = friends.where((friend) {
-        return friend.name.toLowerCase().contains(searchQuery.toLowerCase());
-      }).toList();
+      filteredFriends = friends
+          .where((friend) =>
+              friend.name.toLowerCase().contains(searchQuery.toLowerCase()))
+          .toList();
     });
   }
 
   void navigateToFriendGiftList(Friend friend) {
-    Navigator.pushNamed(
-      context,
-      '/gifts',
-      arguments: {'friend': friend},
-    );
+    Navigator.pushNamed(context, '/gifts', arguments: {'friend': friend});
   }
 
   Future<void> addFriend() async {
@@ -68,56 +64,48 @@ class _HomePageState extends State<HomePage> {
 
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Add Friend'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                ),
-                TextField(
-                  controller: profileUrlController,
-                  decoration:
-                      const InputDecoration(labelText: 'Profile Image URL'),
-                ),
-                TextField(
-                  controller: eventsController,
-                  decoration:
-                      const InputDecoration(labelText: 'Upcoming Events'),
-                  keyboardType: TextInputType.number,
-                ),
-                TextField(
-                  controller: phoneNumberController,
-                  decoration: const InputDecoration(labelText: 'Phone Number'),
-                  keyboardType: TextInputType.phone,
-                ),
-              ],
-            ),
+      builder: (context) => AlertDialog(
+        title: const Text('Add Friend'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: profileUrlController,
+                decoration:
+                    const InputDecoration(labelText: 'Profile Image URL'),
+              ),
+              TextField(
+                controller: eventsController,
+                decoration: const InputDecoration(labelText: 'Upcoming Events'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: phoneNumberController,
+                decoration: const InputDecoration(labelText: 'Phone Number'),
+                keyboardType: TextInputType.phone,
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, false); // Cancel
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context, true); // Confirm
-              },
-              child: const Text('Add'),
-            ),
-          ],
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
     );
 
     if (result == true) {
-      // Validate inputs
       if (nameController.text.trim().isEmpty ||
           phoneNumberController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -131,29 +119,24 @@ class _HomePageState extends State<HomePage> {
         final newFriend = Friend(
           id: FirebaseFirestore.instance.collection('friends').doc().id,
           name: nameController.text.trim(),
-          profileImageUrl: profileUrlController.text.trim(),
           upcomingEvents: int.tryParse(eventsController.text.trim()) ?? 0,
           phoneNumber: phoneNumberController.text.trim(),
         );
 
-        // Save the new friend to Firestore
         await FirebaseFirestore.instance
             .collection('friends')
             .doc(newFriend.id)
             .set(newFriend.toFirestore());
 
-        // Update local state
         setState(() {
           friends.add(newFriend);
           filteredFriends.add(newFriend);
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Friend "${newFriend.name}" added successfully!')),
+          SnackBar(content: Text('Friend "${newFriend.name}" added!')),
         );
       } catch (e) {
-        print('Error adding friend: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to add friend: $e')),
         );
@@ -174,22 +157,15 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.person_add),
             onPressed: addFriend,
-            tooltip: 'Add Friend',
           ),
           IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {}, // Placeholder for a full-screen search UI
+            icon: const Icon(Icons.logout),
+            onPressed: () => FirebaseAuth.instance.signOut(),
           ),
-          IconButton(
-              onPressed: () {
-                FirebaseAuth.instance.signOut();
-              },
-              icon: const Icon(Icons.logout)),
         ],
       ),
       body: Column(
         children: [
-          // Search Bar
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -201,7 +177,6 @@ class _HomePageState extends State<HomePage> {
               onChanged: updateSearch,
             ),
           ),
-          // Friend List
           Expanded(
             child: ListView.builder(
               itemCount: filteredFriends.length,
@@ -209,7 +184,6 @@ class _HomePageState extends State<HomePage> {
                 final friend = filteredFriends[index];
                 return FriendCard(
                   name: friend.name,
-                  profileImageUrl: friend.profileImageUrl,
                   upcomingEvents: friend.upcomingEvents,
                   phoneNumber: friend.phoneNumber,
                   onTap: () => navigateToFriendGiftList(friend),
@@ -222,7 +196,7 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: createEventOrList,
         icon: const Icon(Icons.add),
-        label: const Text('Create Your Own Event/List'),
+        label: const Text('Create Event/List'),
       ),
     );
   }

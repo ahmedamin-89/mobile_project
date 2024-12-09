@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mobile_project/widgets/user_image_picker.dart';
 
 final _firebase = FirebaseAuth.instance;
 
@@ -24,14 +23,18 @@ class _AuthScreenState extends State<AuthScreen> {
   var _enteredEmail = '';
   var _enteredPassword = '';
   var _enteredUsername = '';
-  File? _selectedImage;
   var _isAuthenticating = false;
 
   void _submit() async {
     final isValid = _form.currentState!.validate();
-
-    if (!isValid || !_isLogin && _selectedImage == null) {
+    if (!isValid) {
       // show error message ...
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter valid credentials.'),
+        ),
+      );
       return;
     }
 
@@ -48,21 +51,12 @@ class _AuthScreenState extends State<AuthScreen> {
         final userCredentials = await _firebase.createUserWithEmailAndPassword(
             email: _enteredEmail, password: _enteredPassword);
 
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('user_images')
-            .child('${userCredentials.user!.uid}.jpg');
-
-        await storageRef.putFile(_selectedImage!);
-        final imageUrl = await storageRef.getDownloadURL();
-
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredentials.user!.uid)
             .set({
           'username': _enteredUsername,
           'email': _enteredEmail,
-          'image_url': imageUrl,
         });
       }
     } on FirebaseAuthException catch (error) {
@@ -73,6 +67,20 @@ class _AuthScreenState extends State<AuthScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.message ?? 'Authentication failed.'),
+        ),
+      );
+    } on FirebaseException catch (error) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message ?? 'Authentication failed.'),
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('An error occurred.'),
         ),
       );
     }
@@ -108,12 +116,6 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (!_isLogin)
-                            UserImagePicker(
-                              onPickImage: (pickedImage) {
-                                _selectedImage = pickedImage;
-                              },
-                            ),
                           TextFormField(
                             decoration: const InputDecoration(
                                 labelText: 'Email Address'),
@@ -124,6 +126,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               if (value == null ||
                                   value.trim().isEmpty ||
                                   !value.contains('@')) {
+                                print('email');
                                 return 'Please enter a valid email address.';
                               }
 
@@ -142,6 +145,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 if (value == null ||
                                     value.isEmpty ||
                                     value.trim().length < 4) {
+                                  print('username');
                                   return 'Please enter at least 4 characters.';
                                 }
                                 return null;
@@ -156,6 +160,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             obscureText: true,
                             validator: (value) {
                               if (value == null || value.trim().length < 6) {
+                                print('password');
                                 return 'Password must be at least 6 characters long.';
                               }
                               return null;

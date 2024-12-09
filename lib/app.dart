@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:mobile_project/screens/auth.dart';
+import 'package:mobile_project/screens/my_events_page.dart';
 
 import 'screens/home_page.dart';
 import 'screens/splash_screen.dart';
@@ -33,14 +34,14 @@ class App extends StatelessWidget {
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (ctx, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SplashScreen(); // Show splash screen while loading
+            return const SplashScreen();
           }
 
           if (snapshot.hasData) {
-            return const HomePage(); // User is logged in, show the home page
+            // User is logged in, show the main navigation with bottom bar
+            return const MainNavigation();
           }
 
-          // Show LoginPage or RegisterPage based on a condition (e.g., a toggle or user choice)
           return const AuthScreen();
         },
       ),
@@ -85,6 +86,64 @@ class App extends StatelessWidget {
             );
         }
       },
+    );
+  }
+}
+
+/// This widget will hold the bottom navigation bar and switch between different pages.
+class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
+
+  @override
+  State<MainNavigation> createState() => _MainNavigationState();
+}
+
+class _MainNavigationState extends State<MainNavigation> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
+    const HomePage(),
+    const MyEventsPage(),
+    const MyPledgedGiftsPage(),
+    const ProfilePage(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
+        currentIndex: _selectedIndex,
+        selectedItemColor: ThemeData().primaryColor,
+        unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          // My Events
+          BottomNavigationBarItem(icon: Icon(Icons.event), label: 'My Events'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.card_giftcard),
+            label: 'My Gifts',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
     );
   }
 }
