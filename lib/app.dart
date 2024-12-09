@@ -7,7 +7,6 @@ import 'screens/home_page.dart';
 import 'screens/splash_screen.dart';
 import 'models/event.dart';
 import 'screens/event_details_page.dart';
-import 'screens/event_list_page.dart';
 import 'screens/gift_list_page.dart';
 import 'screens/gift_details_page.dart';
 import 'screens/profile_page.dart';
