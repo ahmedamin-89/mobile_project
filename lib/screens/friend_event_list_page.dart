@@ -1,29 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../models/event.dart';
+import '../models/friend.dart';
 
-class MyEventsPage extends StatefulWidget {
-  const MyEventsPage({Key? key}) : super(key: key);
+class FriendEventListPage extends StatefulWidget {
+  final Friend friend;
+
+  const FriendEventListPage({Key? key, required this.friend}) : super(key: key);
 
   @override
-  State<MyEventsPage> createState() => _MyEventsPageState();
+  State<FriendEventListPage> createState() => _FriendEventListPageState();
 }
 
-class _MyEventsPageState extends State<MyEventsPage> {
-  List<Event> myEvents = [];
+class _FriendEventListPageState extends State<FriendEventListPage> {
+  List<Event> friendEvents = [];
 
   @override
   void initState() {
     super.initState();
-    fetchMyEvents();
+    fetchFriendEvents();
   }
 
-  Future<void> fetchMyEvents() async {
+  Future<void> fetchFriendEvents() async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('events')
-          .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+          .where('userId', isEqualTo: widget.friend.id)
           .get();
 
       final events = querySnapshot.docs.map((doc) {
@@ -32,7 +34,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
       }).toList();
 
       setState(() {
-        myEvents = events;
+        friendEvents = events;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -45,25 +47,18 @@ class _MyEventsPageState extends State<MyEventsPage> {
     Navigator.pushNamed(context, '/event-details', arguments: event);
   }
 
-  void navigateToAddEvent() {
-    Navigator.pushNamed(context, '/event-details').then((_) {
-      // Refresh the events list after adding a new event
-      fetchMyEvents();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Events'),
+        title: Text('${widget.friend.name}\'s Events'),
       ),
-      body: myEvents.isEmpty
-          ? const Center(child: Text('No events found.'))
+      body: friendEvents.isEmpty
+          ? const Center(child: Text('No events found for this friend.'))
           : ListView.builder(
-              itemCount: myEvents.length,
+              itemCount: friendEvents.length,
               itemBuilder: (context, index) {
-                final event = myEvents[index];
+                final event = friendEvents[index];
                 return Card(
                   child: ListTile(
                     title: Text(event.name),
@@ -76,11 +71,6 @@ class _MyEventsPageState extends State<MyEventsPage> {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: navigateToAddEvent,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Event'),
-      ),
     );
   }
 }

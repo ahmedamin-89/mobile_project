@@ -12,6 +12,8 @@ import 'screens/gift_list_page.dart';
 import 'screens/gift_details_page.dart';
 import 'screens/profile_page.dart';
 import 'screens/my_pledged_gifts_page.dart';
+import 'screens/friend_event_list_page.dart';
+import 'models/friend.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +60,18 @@ class App extends StatelessWidget {
                 builder: (_) => const EventDetailsPage(),
               );
             }
+          case '/friend-events':
+            if (settings.arguments is Friend) {
+              final friend = settings.arguments as Friend;
+              return MaterialPageRoute(
+                builder: (_) => FriendEventListPage(friend: friend),
+              );
+            }
+            return MaterialPageRoute(
+              builder: (_) => const Scaffold(
+                body: Center(child: Text('No friend provided')),
+              ),
+            );
           case '/gifts':
             if (settings.arguments is Event) {
               final event = settings.arguments as Event;
@@ -122,9 +136,9 @@ class _MainNavigationState extends State<MainNavigation> {
         children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         currentIndex: _selectedIndex,
-        selectedItemColor: ThemeData().primaryColor,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
         items: const [
@@ -132,7 +146,6 @@ class _MainNavigationState extends State<MainNavigation> {
             icon: Icon(Icons.home),
             label: 'Home',
           ),
-          // My Events
           BottomNavigationBarItem(icon: Icon(Icons.event), label: 'My Events'),
           BottomNavigationBarItem(
             icon: Icon(Icons.card_giftcard),

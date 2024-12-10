@@ -1,6 +1,6 @@
-// lib/screens/event_details_page.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/event.dart';
 
 class EventDetailsPage extends StatefulWidget {
@@ -14,31 +14,35 @@ class EventDetailsPage extends StatefulWidget {
 
 class _EventDetailsPageState extends State<EventDetailsPage> {
   final _formKey = GlobalKey<FormState>();
+  final _dateController = TextEditingController();
   late String name;
   late DateTime date;
   late String location;
   late String description;
+  late List<String> requestedGifts;
 
   @override
   void initState() {
     super.initState();
     if (widget.event != null) {
-      // Editing an existing event
       name = widget.event!.name;
       date = widget.event!.date;
       location = widget.event!.location;
       description = widget.event!.description;
+      requestedGifts = widget.event!.requestedGifts;
+      _dateController.text = '${date.toLocal()}'.split(' ')[0];
     } else {
-      // Adding a new event
       name = '';
       date = DateTime.now();
       location = '';
       description = '';
+      requestedGifts = [];
+      _dateController.text = '${date.toLocal()}'.split(' ')[0];
     }
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
       initialDate: date,
       firstDate: DateTime(2000),
@@ -47,34 +51,47 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     if (picked != null && picked != date) {
       setState(() {
         date = picked;
+        _dateController.text = '${date.toLocal()}'.split(' ')[0];
       });
     }
   }
 
   void saveEvent() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      String status;
-      final now = DateTime.now();
-      if (date.isAfter(now)) {
-        status = 'Upcoming';
-      } else if (date.isBefore(now)) {
-        status = 'Past';
-      } else {
-        status = 'Current';
-      }
+    if (!_formKey.currentState!.validate()) return;
 
-      Event newEvent = Event(
-        id: widget.event?.id ??
-            FirebaseFirestore.instance.collection('events').doc().id,
-        name: name,
-        date: date,
-        location: location,
-        description: description,
-        userId: 'user1', // Replace with actual user ID
-        status: status,
+    _formKey.currentState!.save();
+
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not authenticated')),
       );
+      return;
+    }
 
+    String status;
+    final now = DateTime.now();
+    if (date.isAfter(now)) {
+      status = 'Upcoming';
+    } else if (date.isBefore(now)) {
+      status = 'Past';
+    } else {
+      status = 'Current';
+    }
+
+    Event newEvent = Event(
+      id: widget.event?.id ??
+          FirebaseFirestore.instance.collection('events').doc().id,
+      name: name,
+      date: date,
+      location: location,
+      description: description,
+      userId: userId,
+      status: status,
+      requestedGifts: requestedGifts,
+    );
+
+    try {
       await FirebaseFirestore.instance
           .collection('events')
           .doc(newEvent.id)
@@ -84,8 +101,44 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         SnackBar(content: Text('Event "${newEvent.name}" saved')),
       );
 
-      Navigator.pushReplacementNamed(context, '/gifts',
-          arguments: {'event': newEvent});
+      Navigator.pop(context, true);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save event: $e')),
+      );
+    }
+  }
+
+  Future<void> _addGiftDialog(BuildContext context) async {
+    final TextEditingController giftController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Gift'),
+          content: TextField(
+            controller: giftController,
+            decoration: const InputDecoration(labelText: 'Gift Name'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true && giftController.text.isNotEmpty) {
+      setState(() {
+        requestedGifts.add(giftController.text);
+      });
     }
   }
 
@@ -103,7 +156,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           key: _formKey,
           child: ListView(
             children: [
-              // Event Name
               TextFormField(
                 initialValue: name,
                 decoration: const InputDecoration(labelText: 'Event Name'),
@@ -111,19 +163,15 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     value!.isEmpty ? 'Please enter an event name' : null,
                 onSaved: (value) => name = value!,
               ),
-              // Event Date
               GestureDetector(
                 onTap: () => _selectDate(context),
                 child: AbsorbPointer(
                   child: TextFormField(
                     decoration: const InputDecoration(labelText: 'Event Date'),
-                    controller: TextEditingController(
-                      text: '${date.toLocal()}'.split(' ')[0],
-                    ),
+                    controller: _dateController,
                   ),
                 ),
               ),
-              // Event Location
               TextFormField(
                 initialValue: location,
                 decoration: const InputDecoration(labelText: 'Location'),
@@ -131,12 +179,32 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     value!.isEmpty ? 'Please enter a location' : null,
                 onSaved: (value) => location = value!,
               ),
-              // Event Description
               TextFormField(
                 initialValue: description,
                 decoration: const InputDecoration(labelText: 'Description'),
                 maxLines: 3,
                 onSaved: (value) => description = value!,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Requested Gifts',
+              ),
+              const SizedBox(height: 8),
+              ...requestedGifts.map((gift) => ListTile(
+                    title: Text(gift),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () {
+                        setState(() {
+                          requestedGifts.remove(gift);
+                        });
+                      },
+                    ),
+                  )),
+              ElevatedButton.icon(
+                onPressed: () => _addGiftDialog(context),
+                icon: const Icon(Icons.add),
+                label: const Text('Add Gift'),
               ),
               const SizedBox(height: 16),
               ElevatedButton(

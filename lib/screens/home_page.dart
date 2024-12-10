@@ -52,10 +52,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void navigateToFriendGiftList(Friend friend) {
-    Navigator.pushNamed(context, '/gifts', arguments: {'friend': friend});
-  }
-
   Future<void> addFriend() async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController profileUrlController = TextEditingController();
@@ -144,10 +140,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void createEventOrList() {
-    Navigator.pushNamed(context, '/event-details');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -183,20 +175,22 @@ class _HomePageState extends State<HomePage> {
               itemBuilder: (context, index) {
                 final friend = filteredFriends[index];
                 return FriendCard(
+                  id: friend.id,
                   name: friend.name,
                   upcomingEvents: friend.upcomingEvents,
                   phoneNumber: friend.phoneNumber,
-                  onTap: () => navigateToFriendGiftList(friend),
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/friend-events',
+                      arguments: friend,
+                    );
+                  },
                 );
               },
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: createEventOrList,
-        icon: const Icon(Icons.add),
-        label: const Text('Create Event/List'),
       ),
     );
   }

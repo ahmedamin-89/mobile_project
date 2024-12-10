@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import '../models/friend.dart';
 
 class FriendCard extends StatelessWidget {
   final String name;
   final int upcomingEvents;
   final String phoneNumber;
+  final String id;
   final VoidCallback onTap;
 
   const FriendCard({
     Key? key,
     required this.name,
+    required this.id,
     required this.upcomingEvents,
     required this.phoneNumber,
     required this.onTap,
@@ -18,7 +21,9 @@ class FriendCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: CircleAvatar(
-        child: Icon(Icons.person, color: Theme.of(context).primaryColor),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child:
+            Icon(Icons.person, color: Theme.of(context).colorScheme.onPrimary),
       ),
       title: Text(name),
       subtitle: Column(

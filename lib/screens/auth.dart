@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -64,6 +66,7 @@ class _AuthScreenState extends State<AuthScreen> {
         // ...
       }
       ScaffoldMessenger.of(context).clearSnackBars();
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.message ?? 'Authentication failed.'),
@@ -79,8 +82,8 @@ class _AuthScreenState extends State<AuthScreen> {
     } catch (error) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('An error occurred.'),
+        const SnackBar(
+          content: Text('An error occurred.'),
         ),
       );
     }
