@@ -19,7 +19,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   late DateTime date;
   late String location;
   late String description;
-  late List<String> requestedGifts;
+  late List<Map<String, dynamic>> requestedGifts;
 
   @override
   void initState() {
@@ -137,7 +137,11 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
 
     if (result == true && giftController.text.isNotEmpty) {
       setState(() {
-        requestedGifts.add(giftController.text);
+        requestedGifts.add({
+          'giftName': giftController.text,
+          'status': 'Not Selected',
+          'pledgedBy': ''
+        });
       });
     }
   }
@@ -186,12 +190,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                 onSaved: (value) => description = value!,
               ),
               const SizedBox(height: 16),
-              Text(
-                'Requested Gifts',
-              ),
+              Text('Requested Gifts'),
               const SizedBox(height: 8),
               ...requestedGifts.map((gift) => ListTile(
-                    title: Text(gift),
+                    title: Text(gift['giftName']),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () {

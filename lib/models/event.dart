@@ -8,7 +8,7 @@ class Event {
   final String description;
   final String userId;
   final String status;
-  final List<String> requestedGifts;
+  final List<Map<String, dynamic>> requestedGifts;
 
   Event({
     required this.id,
@@ -25,14 +25,13 @@ class Event {
     return Event(
       id: data['id'] ?? '',
       name: data['name'] ?? '',
-      date:
-          (data['date'] as Timestamp).toDate(), // Convert Timestamp to DateTime
+      date: (data['date'] as Timestamp).toDate(),
       location: data['location'] ?? '',
       description: data['description'] ?? '',
       userId: data['userId'] ?? '',
       status: data['status'] ?? '',
-      requestedGifts: List<String>.from(
-          data['requestedGifts'] ?? []), // Handle list of gifts
+      requestedGifts:
+          List<Map<String, dynamic>>.from(data['requestedGifts'] ?? []),
     );
   }
 
@@ -40,12 +39,12 @@ class Event {
     return {
       'id': id,
       'name': name,
-      'date': Timestamp.fromDate(date), // Convert DateTime to Timestamp
+      'date': date,
       'location': location,
       'description': description,
       'userId': userId,
       'status': status,
-      'requestedGifts': requestedGifts, // Save list of gifts
+      'requestedGifts': requestedGifts,
     };
   }
 }

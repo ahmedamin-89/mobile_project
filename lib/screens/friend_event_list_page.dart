@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mobile_project/screens/friend_event_details_page.dart';
 import '../models/event.dart';
 import '../models/friend.dart';
 
@@ -47,7 +48,12 @@ class _FriendEventListPageState extends State<FriendEventListPage> {
   }
 
   void navigateToEventDetails(Event event) {
-    Navigator.pushNamed(context, '/event-details', arguments: event);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FriendEventDetailsPage(event: event),
+      ),
+    );
   }
 
   @override
