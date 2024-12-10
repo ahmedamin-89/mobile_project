@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:mobile_project/screens/add_friend_screen.dart';
 import 'package:mobile_project/screens/auth.dart';
+import 'package:mobile_project/screens/friend_requests_screen.dart';
 import 'package:mobile_project/screens/my_events_page.dart';
 
 import 'screens/home_page.dart';
@@ -60,6 +62,13 @@ class App extends StatelessWidget {
                 builder: (_) => const EventDetailsPage(),
               );
             }
+          case '/add-friend':
+            return MaterialPageRoute(builder: (_) => const AddFriendScreen());
+
+          case '/friend-requests':
+            return MaterialPageRoute(
+              builder: (_) => const FriendRequestsScreen(),
+            );
           case '/friend-events':
             if (settings.arguments is Friend) {
               final friend = settings.arguments as Friend;

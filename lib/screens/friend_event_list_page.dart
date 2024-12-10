@@ -14,6 +14,8 @@ class FriendEventListPage extends StatefulWidget {
 
 class _FriendEventListPageState extends State<FriendEventListPage> {
   List<Event> friendEvents = [];
+  bool isLoading = true;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -28,18 +30,19 @@ class _FriendEventListPageState extends State<FriendEventListPage> {
           .where('userId', isEqualTo: widget.friend.id)
           .get();
 
-      final events = querySnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return Event.fromFirestore(data);
-      }).toList();
+      final events = querySnapshot.docs
+          .map((doc) => Event.fromFirestore(doc.data()))
+          .toList();
 
       setState(() {
         friendEvents = events;
+        isLoading = false;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading events: $e')),
-      );
+      setState(() {
+        errorMessage = 'Error loading events: $e';
+        isLoading = false;
+      });
     }
   }
 
@@ -53,24 +56,29 @@ class _FriendEventListPageState extends State<FriendEventListPage> {
       appBar: AppBar(
         title: Text('${widget.friend.name}\'s Events'),
       ),
-      body: friendEvents.isEmpty
-          ? const Center(child: Text('No events found for this friend.'))
-          : ListView.builder(
-              itemCount: friendEvents.length,
-              itemBuilder: (context, index) {
-                final event = friendEvents[index];
-                return Card(
-                  child: ListTile(
-                    title: Text(event.name),
-                    subtitle: Text(
-                      '${event.date.toLocal()} | ${event.location} | ${event.status}',
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : errorMessage != null
+              ? Center(child: Text(errorMessage!))
+              : friendEvents.isEmpty
+                  ? const Center(
+                      child: Text('No events found for this friend.'))
+                  : ListView.builder(
+                      itemCount: friendEvents.length,
+                      itemBuilder: (context, index) {
+                        final event = friendEvents[index];
+                        return Card(
+                          child: ListTile(
+                            title: Text(event.name),
+                            subtitle: Text(
+                              '${event.date.toLocal()} | ${event.location} | ${event.status}',
+                            ),
+                            trailing: const Icon(Icons.arrow_forward),
+                            onTap: () => navigateToEventDetails(event),
+                          ),
+                        );
+                      },
                     ),
-                    trailing: const Icon(Icons.arrow_forward),
-                    onTap: () => navigateToEventDetails(event),
-                  ),
-                );
-              },
-            ),
     );
   }
 }

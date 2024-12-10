@@ -1,8 +1,8 @@
 class Friend {
-  final String id; // Friend's user ID
+  final String id;
   final String name;
   final int upcomingEvents;
-  final String phoneNumber; // New field
+  final String phoneNumber;
 
   Friend({
     required this.id,
@@ -30,16 +30,16 @@ class Friend {
       'id': id,
       'name': name,
       'upcomingEvents': upcomingEvents,
-      'phoneNumber': phoneNumber, // Save phone number to Firestore
+      'phoneNumber': phoneNumber,
     };
   }
 
   factory Friend.fromFirestore(Map<String, dynamic> map) {
     return Friend(
-      id: map['id'],
-      name: map['name'],
+      id: map['id'] ?? '',
+      name: map['name'] ?? 'Unknown',
       upcomingEvents: map['upcomingEvents'] ?? 0,
-      phoneNumber: map['phoneNumber'] ?? '', // Default to empty if missing
+      phoneNumber: map['phoneNumber'] ?? 'Not Provided',
     );
   }
 }

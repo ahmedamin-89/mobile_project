@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mobile_project/screens/add_friend_screen.dart';
 import '../models/friend.dart';
 import '../widgets/friend_card.dart';
 
@@ -24,12 +25,46 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> fetchFriends() async {
     try {
-      final querySnapshot =
-          await FirebaseFirestore.instance.collection('friends').get();
-      final fetchedFriends = querySnapshot.docs
-          .map(
-              (doc) => Friend.fromFirestore(doc.data() as Map<String, dynamic>))
-          .toList();
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        throw Exception("User not authenticated");
+      }
+
+      // Fetch the current user's document
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      if (!userDoc.exists || !userDoc.data()!.containsKey('friends')) {
+        setState(() {
+          friends = [];
+          filteredFriends = [];
+        });
+        return;
+      }
+
+      // Get the list of friend IDs
+      final List<String> friendIds = List<String>.from(userDoc['friends']);
+
+      if (friendIds.isEmpty) {
+        setState(() {
+          friends = [];
+          filteredFriends = [];
+        });
+        return;
+      }
+
+      // Fetch the friend details
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where(FieldPath.documentId, whereIn: friendIds)
+          .get();
+
+      final fetchedFriends = querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return Friend.fromFirestore(data as Map<String, dynamic>);
+      }).toList();
 
       setState(() {
         friends = fetchedFriends;
@@ -42,6 +77,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void navigateToAddFriendScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddFriendScreen()),
+    ).then((_) => fetchFriends()); // Refresh the list after adding a friend
+  }
+
   void updateSearch(String query) {
     setState(() {
       searchQuery = query;
@@ -52,94 +94,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> addFriend() async {
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController profileUrlController = TextEditingController();
-    final TextEditingController eventsController = TextEditingController();
-    final TextEditingController phoneNumberController = TextEditingController();
-
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Friend'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-              ),
-              TextField(
-                controller: profileUrlController,
-                decoration:
-                    const InputDecoration(labelText: 'Profile Image URL'),
-              ),
-              TextField(
-                controller: eventsController,
-                decoration: const InputDecoration(labelText: 'Upcoming Events'),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: phoneNumberController,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
-                keyboardType: TextInputType.phone,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-
-    if (result == true) {
-      if (nameController.text.trim().isEmpty ||
-          phoneNumberController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Name and phone number are required fields!')),
-        );
-        return;
-      }
-
-      try {
-        final newFriend = Friend(
-          id: FirebaseFirestore.instance.collection('friends').doc().id,
-          name: nameController.text.trim(),
-          upcomingEvents: int.tryParse(eventsController.text.trim()) ?? 0,
-          phoneNumber: phoneNumberController.text.trim(),
-        );
-
-        await FirebaseFirestore.instance
-            .collection('friends')
-            .doc(newFriend.id)
-            .set(newFriend.toFirestore());
-
-        setState(() {
-          friends.add(newFriend);
-          filteredFriends.add(newFriend);
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Friend "${newFriend.name}" added!')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add friend: $e')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,7 +102,7 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.person_add),
-            onPressed: addFriend,
+            onPressed: navigateToAddFriendScreen,
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -170,25 +124,27 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredFriends.length,
-              itemBuilder: (context, index) {
-                final friend = filteredFriends[index];
-                return FriendCard(
-                  id: friend.id,
-                  name: friend.name,
-                  upcomingEvents: friend.upcomingEvents,
-                  phoneNumber: friend.phoneNumber,
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/friend-events',
-                      arguments: friend,
-                    );
-                  },
-                );
-              },
-            ),
+            child: friends.isEmpty
+                ? const Center(child: Text('No friends found.'))
+                : ListView.builder(
+                    itemCount: filteredFriends.length,
+                    itemBuilder: (context, index) {
+                      final friend = filteredFriends[index];
+                      return FriendCard(
+                        id: friend.id,
+                        name: friend.name,
+                        upcomingEvents: friend.upcomingEvents,
+                        phoneNumber: friend.phoneNumber,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/friend-events',
+                            arguments: friend,
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),
