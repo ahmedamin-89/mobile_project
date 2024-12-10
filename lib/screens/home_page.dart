@@ -63,7 +63,12 @@ class _HomePageState extends State<HomePage> {
 
       final fetchedFriends = querySnapshot.docs.map((doc) {
         final data = doc.data();
-        return Friend.fromFirestore(data as Map<String, dynamic>);
+        return Friend(
+          id: doc.id,
+          name: data['username'] ?? 'Unknown',
+          numberOfEvents: data['numberOfEvents'] ?? 0,
+          email: data['email'] ?? 'Not Provided',
+        );
       }).toList();
 
       setState(() {
@@ -132,9 +137,9 @@ class _HomePageState extends State<HomePage> {
                       final friend = filteredFriends[index];
                       return FriendCard(
                         id: friend.id,
-                        name: friend.name,
-                        upcomingEvents: friend.upcomingEvents,
-                        phoneNumber: friend.phoneNumber,
+                        username: friend.name,
+                        email: friend.email,
+                        numberOfEvents: friend.numberOfEvents,
                         onTap: () {
                           Navigator.pushNamed(
                             context,

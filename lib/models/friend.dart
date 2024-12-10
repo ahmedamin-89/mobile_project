@@ -1,45 +1,45 @@
 class Friend {
   final String id;
-  final String name;
-  final int upcomingEvents;
-  final String phoneNumber;
+  final String name; // Represents the username
+  final String email;
+  final int numberOfEvents;
 
   Friend({
     required this.id,
     required this.name,
-    required this.upcomingEvents,
-    required this.phoneNumber,
+    required this.email,
+    required this.numberOfEvents,
   });
 
   Friend copyWith({
     String? id,
     String? name,
-    int? upcomingEvents,
-    String? phoneNumber,
+    String? email,
+    int? numberOfEvents,
   }) {
     return Friend(
       id: id ?? this.id,
       name: name ?? this.name,
-      upcomingEvents: upcomingEvents ?? this.upcomingEvents,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
+      email: email ?? this.email,
+      numberOfEvents: numberOfEvents ?? this.numberOfEvents,
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
       'id': id,
-      'name': name,
-      'upcomingEvents': upcomingEvents,
-      'phoneNumber': phoneNumber,
+      'username': name,
+      'email': email,
+      'numberOfEvents': numberOfEvents,
     };
   }
 
   factory Friend.fromFirestore(Map<String, dynamic> map) {
     return Friend(
       id: map['id'] ?? '',
-      name: map['name'] ?? 'Unknown',
-      upcomingEvents: map['upcomingEvents'] ?? 0,
-      phoneNumber: map['phoneNumber'] ?? 'Not Provided',
+      name: map['username'] ?? 'Unknown',
+      email: map['email'] ?? 'Not Provided',
+      numberOfEvents: map['numberOfEvents'] ?? 0,
     );
   }
 }

@@ -214,30 +214,6 @@ class _ProfilePageState extends State<ProfilePage> {
               title: const Text('Friend Requests'),
               onTap: navigateToFriendRequests,
             ),
-            const Divider(),
-            const Text(
-              'My Friends',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            // Display Friends
-            friends.isEmpty
-                ? const Text('No friends added yet.')
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: friends.length,
-                    itemBuilder: (context, index) {
-                      final friend = friends[index];
-                      return FriendCard(
-                        id: friend.id,
-                        name: friend.name,
-                        upcomingEvents: friend.upcomingEvents,
-                        phoneNumber: friend.phoneNumber,
-                        onTap: () => navigateToFriendDetails(friend),
-                      );
-                    },
-                  ),
           ],
         ),
       ),

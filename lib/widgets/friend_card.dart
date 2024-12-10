@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 
 class FriendCard extends StatelessWidget {
-  final String name;
-  final int upcomingEvents;
-  final String phoneNumber;
+  final String username;
+  final String email;
+  final int numberOfEvents;
   final String id;
   final VoidCallback onTap;
 
   const FriendCard({
-    super.key,
-    required this.name,
+    Key? key,
+    required this.username,
+    required this.email,
+    required this.numberOfEvents,
     required this.id,
-    required this.upcomingEvents,
-    required this.phoneNumber,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -31,21 +31,21 @@ class FriendCard extends StatelessWidget {
           ),
         ),
         title: Text(
-          name,
+          username,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              upcomingEvents > 0
-                  ? 'Upcoming Events: $upcomingEvents'
-                  : 'No Upcoming Events',
-              style: const TextStyle(fontSize: 12.0),
+              'Email: $email',
+              style: const TextStyle(fontSize: 12.0, color: Colors.grey),
             ),
             Text(
-              'Phone: $phoneNumber',
-              style: const TextStyle(fontSize: 12.0, color: Colors.grey),
+              numberOfEvents > 0
+                  ? 'Events: $numberOfEvents'
+                  : 'No Events Available',
+              style: const TextStyle(fontSize: 12.0),
             ),
           ],
         ),
