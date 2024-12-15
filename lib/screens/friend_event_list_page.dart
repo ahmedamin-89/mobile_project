@@ -7,7 +7,7 @@ import '../models/friend.dart';
 class FriendEventListPage extends StatefulWidget {
   final Friend friend;
 
-  const FriendEventListPage({Key? key, required this.friend}) : super(key: key);
+  const FriendEventListPage({super.key, required this.friend});
 
   @override
   State<FriendEventListPage> createState() => _FriendEventListPageState();
@@ -77,7 +77,7 @@ class _FriendEventListPageState extends State<FriendEventListPage> {
                           child: ListTile(
                             title: Text(event.name),
                             subtitle: Text(
-                              '${event.date.toLocal()} | ${event.location} | ${event.status}',
+                              '${event.date.toIso8601String().split('T')[0]} | ${event.location} | ${event.status}',
                             ),
                             trailing: const Icon(Icons.arrow_forward),
                             onTap: () => navigateToEventDetails(event),

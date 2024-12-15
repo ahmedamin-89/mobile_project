@@ -15,11 +15,41 @@ class FriendEventDetailsPage extends StatefulWidget {
 
 class _FriendEventDetailsPageState extends State<FriendEventDetailsPage> {
   late List<Map<String, dynamic>> requestedGifts; // Array of gift objects
+  Map<String, String> userNames = {}; // Map to store userId -> username
 
   @override
   void initState() {
     super.initState();
     requestedGifts = widget.event.requestedGifts;
+    fetchUsernames(); // Pre-fetch usernames for pledges
+  }
+
+  Future<void> fetchUsernames() async {
+    try {
+      final userIds = requestedGifts
+          .where((gift) => gift['pledgedBy'] != null)
+          .map((gift) => gift['pledgedBy'])
+          .toSet();
+
+      for (var userId in userIds) {
+        if (userId == null || userNames.containsKey(userId)) continue;
+
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .get();
+
+        if (userDoc.exists) {
+          userNames[userId] = userDoc['username'] ?? 'Unknown';
+        }
+      }
+
+      setState(() {});
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to fetch usernames: $e')),
+      );
+    }
   }
 
   Future<void> updateGiftStatus(String giftName, String status) async {
@@ -69,6 +99,7 @@ class _FriendEventDetailsPageState extends State<FriendEventDetailsPage> {
 
       setState(() {
         requestedGifts = gifts;
+        userNames[userId] = 'You'; // Optionally store the current user
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -97,7 +128,8 @@ class _FriendEventDetailsPageState extends State<FriendEventDetailsPage> {
                   final gift = requestedGifts[index];
                   final giftName = gift['giftName'];
                   final status = gift['status'] ?? 'Not Selected';
-                  final pledgedBy = gift['pledgedBy'] ?? 'Unknown';
+                  final pledgedById = gift['pledgedBy'];
+                  final pledgedBy = userNames[pledgedById] ?? 'Unknown';
 
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8.0),

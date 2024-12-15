@@ -41,12 +41,6 @@ class FriendCard extends StatelessWidget {
               'Email: $email',
               style: const TextStyle(fontSize: 12.0, color: Colors.grey),
             ),
-            Text(
-              numberOfEvents > 0
-                  ? 'Events: $numberOfEvents'
-                  : 'No Events Available',
-              style: const TextStyle(fontSize: 12.0),
-            ),
           ],
         ),
         trailing: const Icon(Icons.arrow_forward),
