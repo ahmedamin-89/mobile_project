@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:mobile_project/screens/add_friend_screen.dart';
-import 'package:mobile_project/screens/auth.dart';
-import 'package:mobile_project/screens/friend_requests_screen.dart';
-import 'package:mobile_project/screens/my_events_page.dart';
+import 'package:hedieaty/screens/add_friend_screen.dart';
+import 'package:hedieaty/screens/auth.dart';
+import 'package:hedieaty/screens/friend_requests_screen.dart';
+import 'package:hedieaty/screens/my_events_page.dart';
 
 import 'screens/home_page.dart';
 import 'screens/splash_screen.dart';

@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mobile_project/screens/add_friend_screen.dart';
+import 'package:hedieaty/screens/add_friend_screen.dart';
 import '../models/friend.dart';
 import '../widgets/friend_card.dart';
 
