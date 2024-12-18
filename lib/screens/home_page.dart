@@ -109,10 +109,6 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.person_add),
             onPressed: navigateToAddFriendScreen,
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => FirebaseAuth.instance.signOut(),
-          ),
         ],
       ),
       body: Column(

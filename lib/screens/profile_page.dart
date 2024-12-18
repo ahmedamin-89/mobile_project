@@ -12,9 +12,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   bool notificationsEnabled = true;
   bool isLoading = true;
   List<Friend> friends = [];
@@ -45,15 +44,14 @@ class _ProfilePageState extends State<ProfilePage> {
       if (userDoc.exists) {
         final data = userDoc.data()!;
         setState(() {
-          _nameController.text = data['name'] ?? '';
-          _emailController.text = data['email'] ?? '';
           _usernameController.text = data['username'] ?? '';
+          _emailController.text = data['email'] ?? '';
           notificationsEnabled = data['preferences']?['notifications'] ?? true;
           isLoading = false;
         });
       } else {
         setState(() {
-          isLoading = false; // Stop loading if user document doesn't exist
+          isLoading = false;
         });
       }
     } catch (e) {
@@ -100,7 +98,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     try {
-      // Validate the username to ensure it's unique
       final username = _usernameController.text.trim();
       final existingUser = await FirebaseFirestore.instance
           .collection('users')
@@ -116,8 +113,6 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       final updatedData = {
-        'name': _nameController.text.trim(),
-        'email': _emailController.text.trim(),
         'username': username,
         'preferences': {'notifications': notificationsEnabled},
       };
@@ -137,16 +132,37 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  void navigateToMyEvents() {
-    Navigator.pushNamed(context, '/events');
+  Future<void> _deleteAccount() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not authenticated')),
+      );
+      return;
+    }
+
+    try {
+      // Delete user data from Firestore
+      await FirebaseFirestore.instance.collection('users').doc(userId).delete();
+
+      // Delete user authentication account
+      await FirebaseAuth.instance.currentUser?.delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account deleted successfully')),
+      );
+
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting account: $e')),
+      );
+    }
   }
 
   void navigateToFriendRequests() {
     Navigator.pushNamed(context, '/friend-requests');
-  }
-
-  void navigateToFriendDetails(Friend friend) {
-    Navigator.pushNamed(context, '/friend-events', arguments: friend);
   }
 
   @override
@@ -170,21 +186,16 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Icon(Icons.person, size: 50),
             ),
             const SizedBox(height: 16),
-            // Name Field
+            // Username Field
             TextField(
-              decoration: const InputDecoration(labelText: 'Name'),
-              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Username'),
+              controller: _usernameController,
             ),
             // Email Field (Read-only)
             TextField(
               decoration: const InputDecoration(labelText: 'Email'),
               controller: _emailController,
               readOnly: true,
-            ),
-            // Username Field
-            TextField(
-              decoration: const InputDecoration(labelText: 'Username'),
-              controller: _usernameController,
             ),
             // Notifications Toggle
             SwitchListTile(
@@ -196,23 +207,28 @@ class _ProfilePageState extends State<ProfilePage> {
                 });
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.people),
+              title: const Text('Friend Requests'),
+              onTap: navigateToFriendRequests,
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _saveProfile,
               child: const Text('Save Changes'),
             ),
             const Divider(),
-            // Navigation to My Events
-            ListTile(
-              leading: const Icon(Icons.event),
-              title: const Text('My Events'),
-              onTap: navigateToMyEvents,
+
+            // Account Deletion Button
+            ElevatedButton(
+              onPressed: () => FirebaseAuth.instance.signOut(),
+              style: ElevatedButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Sign Out'),
             ),
-            // Navigation to My Pledged Gifts
-            ListTile(
-              leading: const Icon(Icons.people),
-              title: const Text('Friend Requests'),
-              onTap: navigateToFriendRequests,
+            ElevatedButton(
+              onPressed: _deleteAccount,
+              style: ElevatedButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete Account'),
             ),
           ],
         ),

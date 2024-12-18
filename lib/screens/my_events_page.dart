@@ -68,7 +68,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
                   child: ListTile(
                     title: Text(event.name),
                     subtitle: Text(
-                      '${event.date.toLocal()} | ${event.location} | ${event.status}',
+                      '${event.date.toIso8601String().split('T')[0]} | ${event.location} | ${event.status}',
                     ),
                     trailing: const Icon(Icons.arrow_forward),
                     onTap: () => navigateToEventDetails(event),
