@@ -4,9 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hedieaty/screens/add_friend_screen.dart';
 import '../models/friend.dart';
 import '../widgets/friend_card.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -17,9 +18,17 @@ class _HomePageState extends State<HomePage> {
   List<Friend> filteredFriends = [];
   String searchQuery = '';
 
+  void setupPushNotifications() async {
+    final fcm = FirebaseMessaging.instance;
+
+    await fcm.requestPermission();
+  }
+
   @override
   void initState() {
     super.initState();
+    setupPushNotifications();
+
     fetchFriends();
   }
 

@@ -1,11 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 final _firebase = FirebaseAuth.instance;
 
@@ -27,7 +27,7 @@ class _AuthScreenState extends State<AuthScreen> {
   var _enteredUsername = '';
   var _isAuthenticating = false;
 
-  void _submit() async {
+  Future<void> _submit() async {
     final isValid = _form.currentState!.validate();
     if (!isValid) {
       // show error message ...
@@ -42,17 +42,24 @@ class _AuthScreenState extends State<AuthScreen> {
 
     _form.currentState!.save();
 
+    UserCredential? userCredentials;
+
     try {
       setState(() {
         _isAuthenticating = true;
       });
       if (_isLogin) {
-        final userCredentials = await _firebase.signInWithEmailAndPassword(
-            email: _enteredEmail, password: _enteredPassword);
+        userCredentials = await _firebase.signInWithEmailAndPassword(
+          email: _enteredEmail,
+          password: _enteredPassword,
+        );
       } else {
-        final userCredentials = await _firebase.createUserWithEmailAndPassword(
-            email: _enteredEmail, password: _enteredPassword);
+        userCredentials = await _firebase.createUserWithEmailAndPassword(
+          email: _enteredEmail,
+          password: _enteredPassword,
+        );
 
+        // Set user data when creating new account
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredentials.user!.uid)
@@ -61,18 +68,32 @@ class _AuthScreenState extends State<AuthScreen> {
           'email': _enteredEmail,
         });
       }
-    } on FirebaseAuthException catch (error) {
-      if (error.code == 'email-already-in-use') {
-        // ...
+
+      // Get the FCM token
+      final fcm = FirebaseMessaging.instance;
+      String? token = await fcm.getToken();
+
+      if (userCredentials != null && userCredentials.user != null) {
+        // Save this token to Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredentials.user!.uid)
+            .update({'fcmToken': token});
       }
+    } on FirebaseAuthException catch (error) {
+      setState(() {
+        _isAuthenticating = false;
+      });
       ScaffoldMessenger.of(context).clearSnackBars();
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.message ?? 'Authentication failed.'),
         ),
       );
     } on FirebaseException catch (error) {
+      setState(() {
+        _isAuthenticating = false;
+      });
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -80,12 +101,24 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       );
     } catch (error) {
+      setState(() {
+        _isAuthenticating = false;
+      });
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('An error occurred.'),
         ),
       );
+    } finally {
+      // If successfully authenticated, _isAuthenticating will end when the
+      // user is redirected due to the authStateChanges stream in main navigation.
+      // If we want to end authentication state here anyway, we can:
+      if (mounted && _firebase.currentUser != null) {
+        setState(() {
+          _isAuthenticating = false;
+        });
+      }
     }
   }
 
@@ -129,7 +162,6 @@ class _AuthScreenState extends State<AuthScreen> {
                               if (value == null ||
                                   value.trim().isEmpty ||
                                   !value.contains('@')) {
-                                print('email');
                                 return 'Please enter a valid email address.';
                               }
 
@@ -148,7 +180,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                 if (value == null ||
                                     value.isEmpty ||
                                     value.trim().length < 4) {
-                                  print('username');
                                   return 'Please enter at least 4 characters.';
                                 }
                                 return null;
@@ -163,7 +194,6 @@ class _AuthScreenState extends State<AuthScreen> {
                             obscureText: true,
                             validator: (value) {
                               if (value == null || value.trim().length < 6) {
-                                print('password');
                                 return 'Password must be at least 6 characters long.';
                               }
                               return null;
