@@ -11,7 +11,7 @@ class GiftCard extends StatelessWidget {
   final VoidCallback? onPledge;
 
   const GiftCard({
-    Key? key,
+    super.key,
     required this.giftName,
     required this.category,
     required this.status,
@@ -19,7 +19,7 @@ class GiftCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onPledge,
-  }) : super(key: key);
+  });
 
   Color get statusColor {
     switch (status.toLowerCase()) {

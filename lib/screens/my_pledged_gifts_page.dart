@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/gift.dart';
 
 class MyPledgedGiftsPage extends StatefulWidget {
-  const MyPledgedGiftsPage({Key? key}) : super(key: key);
+  const MyPledgedGiftsPage({super.key});
 
   @override
   State<MyPledgedGiftsPage> createState() => _MyPledgedGiftsPageState();

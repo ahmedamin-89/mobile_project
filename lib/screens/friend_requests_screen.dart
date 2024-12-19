@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class FriendRequestsScreen extends StatefulWidget {
-  const FriendRequestsScreen({Key? key}) : super(key: key);
+  const FriendRequestsScreen({super.key});
 
   @override
   State<FriendRequestsScreen> createState() => _FriendRequestsScreenState();

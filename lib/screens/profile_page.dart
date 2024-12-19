@@ -73,8 +73,7 @@ class _ProfilePageState extends State<ProfilePage> {
           .get();
 
       final fetchedFriends = querySnapshot.docs
-          .map(
-              (doc) => Friend.fromFirestore(doc.data() as Map<String, dynamic>))
+          .map((doc) => Friend.fromFirestore(doc.data()))
           .toList();
 
       setState(() {

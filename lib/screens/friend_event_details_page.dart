@@ -6,8 +6,7 @@ import '../models/event.dart';
 class FriendEventDetailsPage extends StatefulWidget {
   final Event event;
 
-  const FriendEventDetailsPage({Key? key, required this.event})
-      : super(key: key);
+  const FriendEventDetailsPage({super.key, required this.event});
 
   @override
   State<FriendEventDetailsPage> createState() => _FriendEventDetailsPageState();

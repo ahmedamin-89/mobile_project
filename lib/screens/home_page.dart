@@ -17,10 +17,10 @@ class _HomePageState extends State<HomePage> {
   List<Friend> friends = [];
   List<Friend> filteredFriends = [];
   String searchQuery = '';
+  bool isLoading = false;
 
   void setupPushNotifications() async {
     final fcm = FirebaseMessaging.instance;
-
     await fcm.requestPermission();
   }
 
@@ -28,18 +28,20 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     setupPushNotifications();
-
     fetchFriends();
   }
 
   Future<void> fetchFriends() async {
+    setState(() {
+      isLoading = true;
+    });
+
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
         throw Exception("User not authenticated");
       }
 
-      // Fetch the current user's document
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUser.uid)
@@ -49,22 +51,22 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           friends = [];
           filteredFriends = [];
+          isLoading = false;
         });
         return;
       }
 
-      // Get the list of friend IDs
       final List<String> friendIds = List<String>.from(userDoc['friends']);
 
       if (friendIds.isEmpty) {
         setState(() {
           friends = [];
           filteredFriends = [];
+          isLoading = false;
         });
         return;
       }
 
-      // Fetch the friend details
       final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
           .where(FieldPath.documentId, whereIn: friendIds)
@@ -83,8 +85,12 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         friends = fetchedFriends;
         filteredFriends = fetchedFriends;
+        isLoading = false;
       });
     } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading friends: $e')),
       );
@@ -95,7 +101,7 @@ class _HomePageState extends State<HomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const AddFriendScreen()),
-    ).then((_) => fetchFriends()); // Refresh the list after adding a friend
+    ).then((_) => fetchFriends());
   }
 
   void updateSearch(String query) {
@@ -106,6 +112,10 @@ class _HomePageState extends State<HomePage> {
               friend.name.toLowerCase().contains(searchQuery.toLowerCase()))
           .toList();
     });
+  }
+
+  Future<void> _handleRefresh() async {
+    await fetchFriends();
   }
 
   @override
@@ -134,26 +144,31 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Expanded(
-            child: friends.isEmpty
-                ? const Center(child: Text('No friends found.'))
-                : ListView.builder(
-                    itemCount: filteredFriends.length,
-                    itemBuilder: (context, index) {
-                      final friend = filteredFriends[index];
-                      return FriendCard(
-                        id: friend.id,
-                        username: friend.name,
-                        email: friend.email,
-                        numberOfEvents: friend.numberOfEvents,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/friend-events',
-                            arguments: friend,
-                          );
-                        },
-                      );
-                    },
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : RefreshIndicator(
+                    onRefresh: _handleRefresh,
+                    child: friends.isEmpty
+                        ? const Center(child: Text('No friends found.'))
+                        : ListView.builder(
+                            itemCount: filteredFriends.length,
+                            itemBuilder: (context, index) {
+                              final friend = filteredFriends[index];
+                              return FriendCard(
+                                id: friend.id,
+                                username: friend.name,
+                                email: friend.email,
+                                numberOfEvents: friend.numberOfEvents,
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/friend-events',
+                                    arguments: friend,
+                                  );
+                                },
+                              );
+                            },
+                          ),
                   ),
           ),
         ],

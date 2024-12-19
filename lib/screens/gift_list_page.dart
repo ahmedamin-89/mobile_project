@@ -9,7 +9,7 @@ class GiftListPage extends StatefulWidget {
   final Event? event;
   final Friend? friend;
 
-  const GiftListPage({Key? key, this.event, this.friend}) : super(key: key);
+  const GiftListPage({super.key, this.event, this.friend});
 
   @override
   State<GiftListPage> createState() => _GiftListPageState();

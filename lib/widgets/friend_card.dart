@@ -8,13 +8,13 @@ class FriendCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const FriendCard({
-    Key? key,
+    super.key,
     required this.username,
     required this.email,
     required this.numberOfEvents,
     required this.id,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

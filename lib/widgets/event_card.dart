@@ -11,14 +11,14 @@ class EventCard extends StatelessWidget {
   final VoidCallback onDelete;
 
   const EventCard({
-    Key? key,
+    super.key,
     required this.eventName,
     required this.eventDate,
     required this.eventStatus,
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   String get formattedDate {
     return DateFormat.yMMMd().format(eventDate);

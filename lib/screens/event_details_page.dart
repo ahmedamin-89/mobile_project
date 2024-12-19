@@ -6,7 +6,7 @@ import '../models/event.dart';
 class EventDetailsPage extends StatefulWidget {
   final Event? event;
 
-  const EventDetailsPage({Key? key, this.event}) : super(key: key);
+  const EventDetailsPage({super.key, this.event});
 
   @override
   State<EventDetailsPage> createState() => _EventDetailsPageState();
@@ -190,7 +190,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                 onSaved: (value) => description = value!,
               ),
               const SizedBox(height: 16),
-              Text('Requested Gifts'),
+              const Text('Requested Gifts'),
               const SizedBox(height: 8),
               ...requestedGifts.map((gift) => ListTile(
                     title: Text(gift['giftName']),

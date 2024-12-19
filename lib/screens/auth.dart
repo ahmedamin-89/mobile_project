@@ -73,7 +73,7 @@ class _AuthScreenState extends State<AuthScreen> {
       final fcm = FirebaseMessaging.instance;
       String? token = await fcm.getToken();
 
-      if (userCredentials != null && userCredentials.user != null) {
+      if (userCredentials.user != null) {
         // Save this token to Firestore
         await FirebaseFirestore.instance
             .collection('users')
