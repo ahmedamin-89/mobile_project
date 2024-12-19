@@ -20,6 +20,17 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   late String location;
   late String description;
   late List<Map<String, dynamic>> requestedGifts;
+  String category = 'Other';
+
+  final List<String> eventCategories = [
+    'Birthday',
+    'Wedding',
+    'Anniversary',
+    'Holiday',
+    'Baby Shower',
+    'Graduation',
+    'Other',
+  ];
 
   @override
   void initState() {
@@ -30,6 +41,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       location = widget.event!.location;
       description = widget.event!.description;
       requestedGifts = widget.event!.requestedGifts;
+      category =
+          widget.event!.category.isNotEmpty ? widget.event!.category : 'Other';
       _dateController.text = '${date.toLocal()}'.split(' ')[0];
     } else {
       name = '';
@@ -37,6 +50,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       location = '';
       description = '';
       requestedGifts = [];
+      category = 'Other';
       _dateController.text = '${date.toLocal()}'.split(' ')[0];
     }
   }
@@ -89,6 +103,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       userId: userId,
       status: status,
       requestedGifts: requestedGifts,
+      category: category,
     );
 
     try {
@@ -188,6 +203,18 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                 decoration: const InputDecoration(labelText: 'Description'),
                 maxLines: 3,
                 onSaved: (value) => description = value!,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: category,
+                decoration: const InputDecoration(labelText: 'Category'),
+                items: eventCategories
+                    .map((cat) => DropdownMenuItem(
+                          value: cat,
+                          child: Text(cat),
+                        ))
+                    .toList(),
+                onChanged: (value) => setState(() => category = value!),
               ),
               const SizedBox(height: 16),
               const Text('Requested Gifts'),

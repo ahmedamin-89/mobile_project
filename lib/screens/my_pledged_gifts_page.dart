@@ -12,7 +12,6 @@ class MyPledgedGiftsPage extends StatefulWidget {
 
 class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
   List<Gift> pledgedGifts = [];
-  // These maps will store additional info for quick lookup
   Map<String, String> eventNames = {}; // eventId -> eventName
   Map<String, String> eventOwners = {}; // eventId -> eventOwnerId
   Map<String, String> ownerUsernames = {}; // userId -> username
@@ -56,7 +55,6 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
         eventNames[eventId] = eventName;
         eventOwners[eventId] = eventOwnerId;
 
-        // We will fetch owner usernames after we know all eventOwnerIds
         if (eventOwnerId.isNotEmpty) {
           ownerIdsToFetch.add(eventOwnerId);
         }
@@ -67,13 +65,14 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
           final pledgedBy = g['pledgedBy'] as String?;
           final status = g['status'] as String?;
 
-          // Only add if pledgedBy matches current user
           if (pledgedBy == currentUser.uid) {
             final gift = Gift(
               id: '$eventId-$giftName',
               name: giftName ?? 'Unknown Gift',
-              description: '',
-              category: '',
+              description:
+                  '', // Not provided in array; could be extended if needed
+              category:
+                  '', // Not provided in requestedGifts. Could store default.
               price: 0.0,
               status: status ?? 'Pledged',
               eventId: eventId,
@@ -86,7 +85,7 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
         }
       }
 
-      // Fetch usernames for all event owners
+      // Fetch usernames for event owners
       if (ownerIdsToFetch.isNotEmpty) {
         final usersSnapshot = await FirebaseFirestore.instance
             .collection('users')
@@ -118,7 +117,6 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
 
   Future<void> removePledge(Gift gift) async {
     try {
-      // To remove a pledge, update the event's requestedGifts array:
       final eventRef =
           FirebaseFirestore.instance.collection('events').doc(gift.eventId);
       final eventDoc = await eventRef.get();
@@ -138,7 +136,6 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
       List<dynamic> requestedGifts =
           List<dynamic>.from(eventData['requestedGifts']);
 
-      // Find the gift in requestedGifts
       final giftIndex = requestedGifts.indexWhere((g) =>
           g['giftName'] == gift.name && g['pledgedBy'] == gift.pledgedBy);
       if (giftIndex == -1) {
@@ -148,7 +145,6 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
         return;
       }
 
-      // Update the gift's status to "Available" and pledgedBy = ""
       requestedGifts[giftIndex] = {
         'giftName': gift.name,
         'status': 'Available',

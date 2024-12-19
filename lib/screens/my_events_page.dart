@@ -52,7 +52,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
 
   void navigateToEventDetails(Event event) {
     Navigator.pushNamed(context, '/event-details', arguments: event).then((_) {
-      // After coming back from editing the event, refresh the list
+      // After returning, refresh the list
       fetchMyEvents();
     });
   }
@@ -88,7 +88,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
                           child: ListTile(
                             title: Text(event.name),
                             subtitle: Text(
-                              '${event.date.toIso8601String().split('T')[0]} | ${event.location} | ${event.status}',
+                              '${event.date.toIso8601String().split('T')[0]} | ${event.location} | ${event.status} | ${event.category}',
                             ),
                             trailing: const Icon(Icons.arrow_forward),
                             onTap: () => navigateToEventDetails(event),

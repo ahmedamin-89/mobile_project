@@ -1,15 +1,14 @@
-// lib/models/gift.dart
 class Gift {
   final String id;
   final String name;
   final String description;
-  final String category; // e.g., electronics, books, etc.
+  final String category;
   final double price;
-  final String status; // "Available", "Pledged", "Purchased"
-  final String eventId; // The ID of the associated event
-  final String? imageUrl; // Optional URL for the gift image
-  final String? pledgedBy; // ID of the user who pledged the gift
-  final DateTime? dueDate; // Due date for the pledged gift
+  final String status;
+  final String eventId;
+  final String? imageUrl;
+  final String? pledgedBy;
+  final DateTime? dueDate;
 
   Gift({
     required this.id,
@@ -23,32 +22,6 @@ class Gift {
     this.pledgedBy,
     this.dueDate,
   });
-
-  Gift copyWith({
-    String? id,
-    String? name,
-    String? description,
-    String? category,
-    double? price,
-    String? status,
-    String? eventId,
-    String? imageUrl,
-    String? pledgedBy,
-    DateTime? dueDate,
-  }) {
-    return Gift(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      category: category ?? this.category,
-      price: price ?? this.price,
-      status: status ?? this.status,
-      eventId: eventId ?? this.eventId,
-      imageUrl: imageUrl ?? this.imageUrl,
-      pledgedBy: pledgedBy ?? this.pledgedBy,
-      dueDate: dueDate ?? this.dueDate,
-    );
-  }
 
   Map<String, dynamic> toFirestore() {
     return {
@@ -69,10 +42,10 @@ class Gift {
     return Gift(
       id: map['id'],
       name: map['name'],
-      description: map['description'],
-      category: map['category'],
-      price: map['price'],
-      status: map['status'],
+      description: map['description'] ?? '',
+      category: map['category'] ?? '',
+      price: (map['price'] as num).toDouble(),
+      status: map['status'] ?? 'Available',
       eventId: map['eventId'],
       imageUrl: map['imageUrl'],
       pledgedBy: map['pledgedBy'],

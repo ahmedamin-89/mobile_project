@@ -9,6 +9,7 @@ class Event {
   final String userId;
   final String status;
   final List<Map<String, dynamic>> requestedGifts;
+  final String category; // Added category field
 
   Event({
     required this.id,
@@ -19,6 +20,7 @@ class Event {
     required this.userId,
     required this.status,
     required this.requestedGifts,
+    required this.category,
   });
 
   factory Event.fromFirestore(Map<String, dynamic> data) {
@@ -32,6 +34,7 @@ class Event {
       status: data['status'] ?? '',
       requestedGifts:
           List<Map<String, dynamic>>.from(data['requestedGifts'] ?? []),
+      category: data['category'] ?? 'Other',
     );
   }
 
@@ -45,6 +48,7 @@ class Event {
       'userId': userId,
       'status': status,
       'requestedGifts': requestedGifts,
+      'category': category,
     };
   }
 }

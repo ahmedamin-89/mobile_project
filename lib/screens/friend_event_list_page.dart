@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hedieaty/screens/friend_event_details_page.dart';
 import '../models/event.dart';
 import '../models/friend.dart';
+import 'friend_event_details_page.dart';
 
 class FriendEventListPage extends StatefulWidget {
   final Friend friend;
@@ -77,7 +77,7 @@ class _FriendEventListPageState extends State<FriendEventListPage> {
                           child: ListTile(
                             title: Text(event.name),
                             subtitle: Text(
-                              '${event.date.toIso8601String().split('T')[0]} | ${event.location} | ${event.status}',
+                              '${event.date.toIso8601String().split('T')[0]} | ${event.location} | ${event.status} | ${event.category}',
                             ),
                             trailing: const Icon(Icons.arrow_forward),
                             onTap: () => navigateToEventDetails(event),
