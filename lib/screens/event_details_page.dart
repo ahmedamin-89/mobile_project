@@ -125,16 +125,56 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   }
 
   Future<void> _addGiftDialog(BuildContext context) async {
-    final TextEditingController giftController = TextEditingController();
+    final TextEditingController giftNameController = TextEditingController();
+    final TextEditingController giftDescriptionController =
+        TextEditingController();
+    String selectedCategory = 'Electronics'; // Default category
+    final List<String> giftCategories = [
+      'Electronics',
+      'Books',
+      'Clothing',
+      'Home',
+      'Toys',
+      'Sports',
+      'Beauty',
+      'Others',
+    ];
 
     final result = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Add Gift'),
-          content: TextField(
-            controller: giftController,
-            decoration: const InputDecoration(labelText: 'Gift Name'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: giftNameController,
+                decoration: const InputDecoration(labelText: 'Gift Name'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: giftDescriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+                maxLines: 2,
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: selectedCategory,
+                decoration: const InputDecoration(labelText: 'Category'),
+                items: giftCategories
+                    .map((cat) => DropdownMenuItem(
+                          value: cat,
+                          child: Text(cat),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    selectedCategory = value;
+                  }
+                },
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -150,12 +190,16 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       },
     );
 
-    if (result == true && giftController.text.isNotEmpty) {
+    if (result == true &&
+        giftNameController.text.isNotEmpty &&
+        selectedCategory.isNotEmpty) {
       setState(() {
         requestedGifts.add({
-          'giftName': giftController.text,
+          'giftName': giftNameController.text,
+          'description': giftDescriptionController.text,
+          'category': selectedCategory,
           'status': 'Not Selected',
-          'pledgedBy': ''
+          'pledgedBy': '',
         });
       });
     }
@@ -217,19 +261,76 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                 onChanged: (value) => setState(() => category = value!),
               ),
               const SizedBox(height: 16),
-              const Text('Requested Gifts'),
+              const Text(
+                'Requested Gifts',
+                style: TextStyle(fontSize: 18),
+              ),
               const SizedBox(height: 8),
-              ...requestedGifts.map((gift) => ListTile(
-                    title: Text(gift['giftName']),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        setState(() {
-                          requestedGifts.remove(gift);
-                        });
-                      },
+              ...requestedGifts.map((gift) {
+                final giftName = gift['giftName'];
+                final giftDescription =
+                    gift['description'] ?? 'No description provided';
+                final giftCategory = gift['category'] ?? 'Uncategorized';
+
+                return Card(
+                  elevation: 4,
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          giftName,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.category,
+                                size: 18, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            Text(
+                              giftCategory,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          giftDescription,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                requestedGifts.remove(gift);
+                              });
+                            },
+                            tooltip: 'Remove Gift',
+                          ),
+                        ),
+                      ],
                     ),
-                  )),
+                  ),
+                );
+              }).toList(),
               ElevatedButton.icon(
                 onPressed: () => _addGiftDialog(context),
                 icon: const Icon(Icons.add),

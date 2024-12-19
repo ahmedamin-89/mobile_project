@@ -220,11 +220,6 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () => modifyPledge(gift),
-                      tooltip: 'Modify Pledge',
-                    ),
-                    IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () => removePledge(gift),
                       tooltip: 'Remove Pledge',

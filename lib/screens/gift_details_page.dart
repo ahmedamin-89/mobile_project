@@ -1,4 +1,3 @@
-// lib/screens/gift_details_page.dart
 import 'package:flutter/material.dart';
 import '../models/gift.dart';
 
@@ -15,7 +14,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
   final _formKey = GlobalKey<FormState>();
   late String name;
   late String description;
-  String category = 'Electronics';
+  String category = 'Electronics'; // Default category
   late double price;
   bool isPledged = false;
 
@@ -25,7 +24,9 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
     'Clothing',
     'Home',
     'Toys',
-    // Add more categories as needed
+    'Sports',
+    'Beauty',
+    'Others',
   ];
 
   @override
@@ -49,7 +50,25 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
   void saveGift() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      // Implement functionality to save the gift details
+
+      // Create or update the gift object
+      final newGift = Gift(
+        id: widget.gift?.id ?? '', // Generate ID if needed
+        name: name,
+        description: description,
+        category: category,
+        price: price,
+        status: widget.gift?.status ?? 'Available',
+        eventId: widget.gift?.eventId ?? '',
+      );
+
+      // Save the newGift to Firestore or pass it back to the previous screen
+      // TODO: Implement Firestore integration
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gift "${newGift.name}" saved.')),
+      );
+
+      Navigator.pop(context, newGift);
     }
   }
 
@@ -90,6 +109,7 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                               DropdownMenuItem(value: cat, child: Text(cat)))
                           .toList(),
                       onChanged: (value) => setState(() => category = value!),
+                      onSaved: (value) => category = value!,
                     ),
                     TextFormField(
                       initialValue: price != 0.0 ? price.toString() : '',
@@ -100,7 +120,6 @@ class _GiftDetailsPageState extends State<GiftDetailsPage> {
                       onSaved: (value) => price = double.parse(value!),
                     ),
                     const SizedBox(height: 16),
-                    // Implement image upload functionality
                     ElevatedButton(
                       onPressed: saveGift,
                       child: const Text('Save'),
