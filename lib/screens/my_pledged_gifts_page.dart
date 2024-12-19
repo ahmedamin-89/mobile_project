@@ -26,6 +26,10 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
   }
 
   Future<void> fetchPledgedGifts() async {
+    setState(() {
+      isLoading = true;
+    });
+
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
@@ -69,10 +73,8 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
             final gift = Gift(
               id: '$eventId-$giftName',
               name: giftName ?? 'Unknown Gift',
-              description:
-                  '', // Not provided in array; could be extended if needed
-              category:
-                  '', // Not provided in requestedGifts. Could store default.
+              description: '', // Not provided
+              category: '', // Not provided
               price: 0.0,
               status: status ?? 'Pledged',
               eventId: eventId,
@@ -168,6 +170,10 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
     }
   }
 
+  Future<void> _handleRefresh() async {
+    await fetchPledgedGifts();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -192,39 +198,43 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
       appBar: AppBar(
         title: const Text('My Pledged Gifts'),
       ),
-      body: ListView.builder(
-        itemCount: pledgedGifts.length,
-        itemBuilder: (context, index) {
-          final gift = pledgedGifts[index];
-          final eventId = gift.eventId;
-          final eventName = eventNames[eventId] ?? eventId;
-          final eventOwnerId = eventOwners[eventId] ?? '';
-          final ownerUsername = ownerUsernames[eventOwnerId] ?? 'Unknown User';
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: ListView.builder(
+          itemCount: pledgedGifts.length,
+          itemBuilder: (context, index) {
+            final gift = pledgedGifts[index];
+            final eventId = gift.eventId;
+            final eventName = eventNames[eventId] ?? eventId;
+            final eventOwnerId = eventOwners[eventId] ?? '';
+            final ownerUsername =
+                ownerUsernames[eventOwnerId] ?? 'Unknown User';
 
-          return Card(
-            child: ListTile(
-              title: Text(gift.name),
-              subtitle: Text(
-                'Event: $eventName\nOwner: $ownerUsername\nStatus: ${gift.status}',
+            return Card(
+              child: ListTile(
+                title: Text(gift.name),
+                subtitle: Text(
+                  'Event: $eventName\nOwner: $ownerUsername\nStatus: ${gift.status}',
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () => modifyPledge(gift),
+                      tooltip: 'Modify Pledge',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => removePledge(gift),
+                      tooltip: 'Remove Pledge',
+                    ),
+                  ],
+                ),
               ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () => modifyPledge(gift),
-                    tooltip: 'Modify Pledge',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () => removePledge(gift),
-                    tooltip: 'Remove Pledge',
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

@@ -25,6 +25,10 @@ class _FriendEventListPageState extends State<FriendEventListPage> {
   }
 
   Future<void> fetchFriendEvents() async {
+    setState(() {
+      isLoading = true;
+    });
+
     try {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('events')
@@ -47,6 +51,10 @@ class _FriendEventListPageState extends State<FriendEventListPage> {
     }
   }
 
+  Future<void> _handleRefresh() async {
+    await fetchFriendEvents();
+  }
+
   void navigateToEventDetails(Event event) {
     Navigator.push(
       context,
@@ -66,25 +74,29 @@ class _FriendEventListPageState extends State<FriendEventListPage> {
           ? const Center(child: CircularProgressIndicator())
           : errorMessage != null
               ? Center(child: Text(errorMessage!))
-              : friendEvents.isEmpty
-                  ? const Center(
-                      child: Text('No events found for this friend.'))
-                  : ListView.builder(
-                      itemCount: friendEvents.length,
-                      itemBuilder: (context, index) {
-                        final event = friendEvents[index];
-                        return Card(
-                          child: ListTile(
-                            title: Text(event.name),
-                            subtitle: Text(
-                              '${event.date.toIso8601String().split('T')[0]} | ${event.location} | ${event.status} | ${event.category}',
-                            ),
-                            trailing: const Icon(Icons.arrow_forward),
-                            onTap: () => navigateToEventDetails(event),
-                          ),
-                        );
-                      },
-                    ),
+              : RefreshIndicator(
+                  onRefresh: _handleRefresh,
+                  child: friendEvents.isEmpty
+                      ? const Center(
+                          child: Text('No events found for this friend.'),
+                        )
+                      : ListView.builder(
+                          itemCount: friendEvents.length,
+                          itemBuilder: (context, index) {
+                            final event = friendEvents[index];
+                            return Card(
+                              child: ListTile(
+                                title: Text(event.name),
+                                subtitle: Text(
+                                  '${event.date.toIso8601String().split('T')[0]} | ${event.location} | ${event.status} | ${event.category}',
+                                ),
+                                trailing: const Icon(Icons.arrow_forward),
+                                onTap: () => navigateToEventDetails(event),
+                              ),
+                            );
+                          },
+                        ),
+                ),
     );
   }
 }
