@@ -26,13 +26,16 @@ class _FriendEventDetailsPageState extends State<FriendEventDetailsPage> {
 
   Future<void> fetchUsernames() async {
     try {
+      // Extract pledgedBy user IDs that are non-null and non-empty
       final userIds = requestedGifts
-          .where((gift) => gift['pledgedBy'] != null)
-          .map((gift) => gift['pledgedBy'])
+          .where((gift) =>
+              gift['pledgedBy'] != null &&
+              (gift['pledgedBy'] as String).isNotEmpty)
+          .map((gift) => gift['pledgedBy'] as String)
           .toSet();
 
       for (var userId in userIds) {
-        if (userId == null || userNames.containsKey(userId)) continue;
+        if (userId.isEmpty || userNames.containsKey(userId)) continue;
 
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
@@ -41,6 +44,8 @@ class _FriendEventDetailsPageState extends State<FriendEventDetailsPage> {
 
         if (userDoc.exists) {
           userNames[userId] = userDoc['username'] ?? 'Unknown';
+        } else {
+          userNames[userId] = 'Unknown';
         }
       }
 
@@ -105,11 +110,53 @@ class _FriendEventDetailsPageState extends State<FriendEventDetailsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gift "$giftName" marked as $status.')),
       );
+
+      // Send notification to the event owner
+      final eventOwnerId = eventDoc['userId'];
+      await _sendNotificationToEventOwner(eventOwnerId, giftName, status);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update gift status: $e')),
       );
     }
+  }
+
+  Future<void> _sendNotificationToEventOwner(
+      String eventOwnerId, String giftName, String status) async {
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(eventOwnerId)
+        .get();
+    if (!userDoc.exists) return;
+
+    final fcmToken = userDoc['fcmToken'];
+    if (fcmToken == null || fcmToken.isEmpty) return;
+
+    final messageTitle = status == 'Pledged' ? 'Gift Pledged!' : 'Gift Bought!';
+    final messageBody = 'The gift "$giftName" in your event has been $status.';
+
+    // Use Firebase Cloud Functions or a server endpoint to send the FCM message
+    await sendFcmMessage(fcmToken, messageTitle, messageBody);
+  }
+
+  // Placeholder function: Implement this to send the FCM message
+  Future<void> sendFcmMessage(String token, String title, String body) async {
+    // Implement your code to call a cloud function or a server endpoint that sends the FCM notification.
+    // Example (pseudo code):
+    /*
+    final response = await http.post(
+      Uri.parse('https://your-cloud-function-endpoint/sendNotification'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'token': token,
+        'title': title,
+        'body': body,
+      }),
+    );
+    if (response.statusCode != 200) {
+      // Handle error
+    }
+    */
   }
 
   @override
@@ -128,8 +175,11 @@ class _FriendEventDetailsPageState extends State<FriendEventDetailsPage> {
                   final gift = requestedGifts[index];
                   final giftName = gift['giftName'];
                   final status = gift['status'] ?? 'Not Selected';
-                  final pledgedById = gift['pledgedBy'];
-                  final pledgedBy = userNames[pledgedById] ?? 'Unknown';
+                  final pledgedById = gift['pledgedBy'] as String?;
+                  final pledgedBy =
+                      (pledgedById != null && pledgedById.isNotEmpty)
+                          ? userNames[pledgedById] ?? 'Unknown'
+                          : 'None';
 
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8.0),
