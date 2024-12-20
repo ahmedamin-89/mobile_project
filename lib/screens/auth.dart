@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -153,6 +152,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           TextFormField(
+                            key: const ValueKey('emailTextField'),
                             decoration: const InputDecoration(
                                 labelText: 'Email Address'),
                             keyboardType: TextInputType.emailAddress,
@@ -189,6 +189,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               },
                             ),
                           TextFormField(
+                            key: const Key('passwordTextField'),
                             decoration:
                                 const InputDecoration(labelText: 'Password'),
                             obscureText: true,
@@ -207,6 +208,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             const CircularProgressIndicator(),
                           if (!_isAuthenticating)
                             ElevatedButton(
+                              key: const Key('loginButton'),
                               onPressed: _submit,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Theme.of(context)

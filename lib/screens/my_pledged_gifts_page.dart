@@ -176,29 +176,17 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
 
   @override
   Widget build(BuildContext context) {
+    Widget content;
+
     if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (errorMessage != null) {
-      return Scaffold(
-        body: Center(child: Text(errorMessage!)),
-      );
-    }
-
-    if (pledgedGifts.isEmpty) {
-      return const Scaffold(
-        body: Center(child: Text('No pledged gifts found.')),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Pledged Gifts'),
-      ),
-      body: RefreshIndicator(
+      content = const Center(child: CircularProgressIndicator());
+    } else if (errorMessage != null) {
+      content = Center(child: Text(errorMessage!));
+    } else if (pledgedGifts.isEmpty) {
+      content = const Center(child: Text('No pledged gifts found.'));
+    } else {
+      // We have pledged gifts, show them with a RefreshIndicator
+      content = RefreshIndicator(
         onRefresh: _handleRefresh,
         child: ListView.builder(
           itemCount: pledgedGifts.length,
@@ -216,21 +204,23 @@ class _MyPledgedGiftsPageState extends State<MyPledgedGiftsPage> {
                 subtitle: Text(
                   'Event: $eventName\nOwner: $ownerUsername\nStatus: ${gift.status}',
                 ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () => removePledge(gift),
-                      tooltip: 'Remove Pledge',
-                    ),
-                  ],
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => removePledge(gift),
+                  tooltip: 'Remove Pledge',
                 ),
               ),
             );
           },
         ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Pledged Gifts'),
       ),
+      body: content,
     );
   }
 }

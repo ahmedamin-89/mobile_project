@@ -19,6 +19,7 @@ class FriendCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      key: ValueKey(username),
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),

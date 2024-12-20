@@ -238,6 +238,7 @@ class _FriendEventDetailsPageState extends State<FriendEventDetailsPage> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: PopupMenuButton<String>(
+                              key: const ValueKey('gift_action'),
                               onSelected: (value) =>
                                   updateGiftStatus(giftName, value),
                               itemBuilder: (context) => [
